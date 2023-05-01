@@ -1,0 +1,45 @@
+.container {
+    margin-top: 30px;
+  }
+  
+  ul {
+    margin: 20px 0;
+  }
+  
+  li {
+    margin: 10px 0;
+  }
+  
+  .card-title {
+    display: flex;
+    align-items: center;
+    font-size: 28px;
+  }
+  
+  .fa-solid {
+    margin-left: 10px;
+  }
+  
+  .list-group {
+    margin-top: 20px;
+  }
+  
+  .list-group-item {
+    font-size: 18px;
+  }
+  
+  .list-group-item.active {
+    background-color: #007bff;
+    border-color: #007bff;
+  }
+  
+  .list-group-item.active:hover {
+    background-color: #007bff;
+    border-color: #007bff;
+  }
+  
+  .btn-primary {
+    margin-top: 20px;
+    font-size: 18px;
+  }
+  
