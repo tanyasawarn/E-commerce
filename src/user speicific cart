@@ -1,1 +1,119 @@
 
+import React, { useEffect, useState } from "react";
+ 
+const CART_DATA_KEY = "cartData";
+
+
+export const ShopContext = React.createContext({
+  token: "",
+  email:"",
+  password:"",
+  isLoggedIn: true,
+  login: (token) => {},
+  logout: () => {},
+});
+
+export const ShopContextProvider = ({products,email,children }) => {
+
+  const [token, setToken] = useState(null);
+  const [cartProducts, setCartProducts] = useState([]);
+
+ 
+  const userIsLoggedIn = !!token;
+
+  const loginHandler = (token,email) => {
+    setToken(token);
+      
+  };
+
+  const logoutHandler = () => {
+    setToken(null);
+  };
+
+  const getDefaultCart = () => {
+    let cart = {};
+    for (let i = 0; i < products.length; i++) {
+      cart[products[i].id] = 0;
+    }
+    return cart;
+  };
+
+  const [cartItems, setCartItems] = useState(()=>{
+    const storedCartData = localStorage.getItem(CART_DATA_KEY);
+    return storedCartData ? JSON.parse(storedCartData) : getDefaultCart();
+  });
+
+  const getTotalCartAmount = () => {
+    let totalAmount = 0;
+    for (const item in cartItems) {
+      if (cartItems[item] > 0) {
+        let itemInfo = products.find((product) => product.id === Number(item));
+        totalAmount += cartItems[item] * itemInfo.price;
+      }
+    }
+    return totalAmount;
+  };
+
+  const addToCart = (itemId,email) => {
+    setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] + 1 }));
+    fetch('https://crudcrud.com/api/10f3b0ae7d1442f2bf1fd3b576eb204e/userDetails',
+    {
+      method:'Post',
+      body:JSON.stringify({
+      itemId,
+      email
+      }),
+      headers:{
+        'Content-Type':'application/json'
+      }
+    }).then(response=>response.json()
+    .then((data)=>{
+      console.log(data);
+      localStorage.setItem(CART_DATA_KEY, JSON.stringify(cartItems));
+    })
+    )
+    .catch((err)=>{
+      console.log(err);
+    });
+  };
+
+  const removeFromCart = (itemId) => {
+    setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] - 1 }));
+    localStorage.setItem(CART_DATA_KEY, JSON.stringify(cartItems));
+  };
+
+  useEffect(() => {
+    if (token) {
+      fetch(`https://crudcrud.com/api/10f3b0ae7d1442f2bf1fd3b576eb204e/userDetails?email=${email}`)
+        .then((response) => response.json())
+        .then((data) => {
+          const cartProductsData = data.filter((item) => item.itemId in cartItems);
+          setCartProducts(cartProductsData);
+          localStorage.setItem(CART_DATA_KEY, JSON.stringify(cartItems));
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  }, [token, email, cartItems]);
+  
+  const contextValue = {
+    token:token,
+    isLoggedIn:userIsLoggedIn,
+    products,
+    cartItems,
+    cartProducts,
+    addToCart,
+    removeFromCart,
+    getTotalCartAmount,
+   login:loginHandler,
+   logout:logoutHandler
+  };
+
+  return (
+    <ShopContext.Provider value={contextValue}>
+      {children}
+    
+    </ShopContext.Provider>
+  );
+};
